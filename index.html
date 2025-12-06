@@ -61,13 +61,13 @@
 <p id="resultado"></p>
 
 <h2>Já sorteados:</h2>
-<div id="lista"><i>Carregando...</i></div>
+<div id="lista"><i>Ninguém ainda 😁</i></div>
 
 
-<!-- SCRIPT FIREBASE + ROLETAAA -->
+<!-- FIREBASE + SCRIPT DA ROLETA -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit, getDocs as get, deleteDoc, doc } 
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit, deleteDoc, doc } 
         from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -78,7 +78,6 @@ const firebaseConfig = {
   messagingSenderId: "145498462878",
   appId: "1:145498462878:web:9b1167e59b4c05f8e7f98f"
 };  
-
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
