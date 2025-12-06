@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Roleta Amigo Chocolate 🍫</title>
+
+<style>
+    body {
+        background: #3b241a url('https://i.imgur.com/Pqk7hZB.png') repeat;
+        color: #fff;
+        font-family: "Comic Sans MS", sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
+
+    h1 {
+        font-size: 40px;
+        text-shadow: 0 0 10px #000;
+    }
+
+    #roleta {
+        margin: 50px auto;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 10px solid #d2a679;
+        background: radial-gradient(circle, #6b3e26, #3b241a);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    button {
+        background: #5a2e14;
+        border: none;
+        padding: 15px 30px;
+        font-size: 22px;
+        font-weight: bold;
+        color: #fff;
+        border-radius: 8px;
+        transition: 0.3s;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+    button:hover {
+        background: #7a3c18;
+        transform: scale(1.05);
+    }
+
+    #resultado {
+        margin-top: 25px;
+        font-size: 30px;
+        background:#d2a679;
+        color:#3b241a;
+        display:inline-block;
+        padding:10px 20px;
+        border-radius:10px;
+        font-weight:bold;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
+<div id="roleta">Clique no botão 🎡</div>
+
+<button onclick="sortear()">Girar Roleta</button>
+
+<p id="resultado"></p>
+
+<script>
+    let participantes = [
+        "Ana Mendes","Miyashiro","Ana Julia","Carlos","Eduardo","Enzo",
+        "Felipe","Kaique","Pedro","Marina","Manu","Julia"
+    ];
+
+    function sortear() {
+        if(participantes.length === 0){
+            document.getElementById("resultado").innerHTML = 
+                "Todos já foram sorteados! 🎉";
+            return;
+        }
+
+        let index = Math.floor(Math.random() * participantes.length);
+        let escolhido = participantes.splice(index, 1)[0];
+
+        document.getElementById("resultado").innerHTML = 
+            "Você tirou: <b>" + escolhido + "</b> 🍫";
+        document.getElementById("roleta").innerHTML = "🎉";
+    }
+</script>
+
+</body>
+</html>
