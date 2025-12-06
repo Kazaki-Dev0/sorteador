@@ -77,3 +77,11 @@ async function desfazer(){
 
     mostrarSorteados();
 }
+// Função apenas para teste inicial
+export function sortear() {
+    alert("🎉 Função SORTear() está ativa e funcionando!");
+}
+
+export function desfazer() {
+    alert("↩ DESFAZER também está funcionando!");
+}
