@@ -1,87 +1,71 @@
-// ======================= FIREBASE IMPORTS ==========================
+// ---- imports firebase (se usar firebase) ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
-from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit } 
+  from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
 
-// ======================= FIREBASE CONFIG ==========================
+// ---- coloque sua config do firebase aqui ----
 const firebaseConfig = {
-    apiKey: "SEU_API_KEY_AQUI",
-    authDomain: "SEU_AUTHDOMAIN.firebaseapp.com",
-    projectId: "SEU_PROJECT_ID",
-    storageBucket: "SEUBUCKET.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "SEU_APP_ID"
+  apiKey: "COLOQUE_SUA_APIKEY",
+  authDomain: "SEU_AUTHDOMAIN",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_BUCKET",
+  messagingSenderId: "SENDER_ID",
+  appId: "SEU_APP_ID"
 };
 
-// Inicializa Firebase e Firestore
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const sorteioRef = collection(db, "sorteados");
 
-// ======================== LISTA DE NOMES ==========================
-let nomes = ["Kaique", "Maria", "João", "Ana", "Lucas", "Pedro", "Julia"];
+// ---- lista exemplo (adeque se precisar) ----
+let nomes = ["Ana", "Carlos", "Felipe", "Kaique", "Marina"];
 
-// ======================== MOSTRAR SORTEADOS ======================
-async function mostrarSorteados(){
-    const area = document.getElementById("lista-sorteados");
-    area.innerHTML = "";
-
-    const dados = await getDocs(sorteioRef);
-
-    if(dados.empty){
-        area.innerHTML = "<p>Ninguém ainda 😅</p>";
-        return;
-    }
-
-    dados.forEach(pessoa => {
-        let div = document.createElement("p");
-        div.textContent = pessoa.data().nome;
-        area.appendChild(div);
-    });
-}
-
-mostrarSorteados();
-
-// ======================== FUNÇÃO SORTEAR ==========================
+// ---- função sortear ----
 async function sortear(){
+  // teste rápido (descomente se só quiser testar)
+  // alert("sortear() rodando!");
 
-    const jaSorteados = await getDocs(sorteioRef);
-    let usados = jaSorteados.docs.map(doc => doc.data().nome);
+  // exemplo simples de sorteio sem firebase (se quiser testar sem DB)
+  // let escolhido = nomes[Math.floor(Math.random()*nomes.length)];
+  // document.getElementById("resultado").innerHTML = `Você tirou: <b>${escolhido}</b>`;
 
-    let restantes = nomes.filter(n => !usados.includes(n));
-
-    if(restantes.length === 0){
-        alert("Todos já foram sorteados! 🎉");
-        return;
-    }
-
-    let escolhido = restantes[Math.floor(Math.random() * restantes.length)];
-
-    await addDoc(sorteioRef, {nome: escolhido});
-
-    document.getElementById("resultado").textContent = "Você tirou: " + escolhido + " 🎁";
-    mostrarSorteados();
+  // versão com Firestore (assume regras liberadas)
+  const docs = await getDocs(sorteioRef);
+  const usados = docs.docs.map(d => d.data().nome);
+  const restantes = nomes.filter(n => !usados.includes(n));
+  if(restantes.length === 0){
+    document.getElementById("resultado").textContent = "Todos já foram sorteados 🎉";
+    return;
+  }
+  const escolhido = restantes[Math.floor(Math.random()*restantes.length)];
+  await addDoc(sorteioRef, { nome: escolhido, ts: Date.now() });
+  document.getElementById("resultado").innerHTML = `Você tirou: <b>${escolhido}</b> 🍫`;
+  atualizarLista();
 }
+window.sortear = sortear; // <-- EXPÕE a função para o onclick do HTML
 
-// ======================== DESFAZER ÚLTIMO ==========================
+// ---- função desfazer ----
 async function desfazer(){
-    const docsSalvos = await getDocs(sorteioRef);
-
-    if(docsSalvos.empty){
-        alert("Não há nada para desfazer 😁");
-        return;
-    }
-
-    let ultimo = docsSalvos.docs[docsSalvos.docs.length - 1];
-    await deleteDoc(doc(db, "sorteados", ultimo.id));
-
-    mostrarSorteados();
+  const q = query(sorteioRef, orderBy("ts", "desc"), limit(1));
+  const snap = await getDocs(q);
+  if(snap.empty) { alert("Nada para desfazer"); return; }
+  const ultimo = snap.docs[0];
+  await deleteDoc(doc(db, "sorteados", ultimo.id));
+  alert(`Sorteio desfeito: ${ultimo.data().nome}`);
+  atualizarLista();
 }
-// Função apenas para teste inicial
-export function sortear() {
-    alert("🎉 Função SORTear() está ativa e funcionando!");
-}
+window.desfazer = desfazer; // <-- EXPÕE também
 
-export function desfazer() {
-    alert("↩ DESFAZER também está funcionando!");
+// ---- função para atualizar a lista na tela ----
+async function atualizarLista(){
+  const listaEl = document.getElementById("lista") || document.getElementById("lista-sorteados");
+  if(!listaEl) return;
+  const snap = await getDocs(sorteioRef);
+  if(snap.empty){
+    listaEl.innerHTML = "<i>Ninguém ainda 😁</i>";
+    return;
+  }
+  const nomesS = snap.docs.map(d => d.data().nome);
+  listaEl.innerHTML = nomesS.join("<br>");
 }
+atualizarLista();
