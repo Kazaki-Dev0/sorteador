@@ -1,143 +1,99 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Roleta Amigo Chocolate 🍫</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roleta — Amigo Chocolate 🎁🍫</title>
 
-<style>
-    body {
-        background: #3b241a;
-        color: #fff;
-        font-family: Arial, sans-serif;
-        text-align: center;
-        padding: 40px;
-    }
+    <style>
+        body {
+            background: #3b1e12;
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
 
-    h1 { font-size: 42px; text-shadow: 3px 3px 5px #000; }
+        h1 {
+            font-size: 32px;
+            margin-top: 50px;
+            font-weight: bold;
+        }
 
-    #roleta {
-        margin: 40px auto; width: 300px; height: 300px;
-        border-radius: 50%; border: 12px solid #d2a679;
-        background: conic-gradient(#6b3e26 0deg, #3b241a 360deg);
-        display: flex; justify-content: center; align-items: center;
-        font-size: 100px; overflow: hidden; position: relative;
-    }
+        .roda {
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 10px solid #d8a675;
+            margin: 40px auto;
+            background: conic-gradient(#6a4028, #8a5236, #6d3920);
+        }
 
-    #ponteiro {
-        width: 0; height: 0; border-left: 15px solid transparent;
-        border-right: 15px solid transparent; border-bottom: 25px solid #ffce89;
-        margin-bottom: -20px;
-    }
+        button {
+            padding: 13px 28px;
+            font-size: 17px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            margin: 8px;
+        }
 
-    button {
-        background: #5a2e14; border: none; padding: 12px 26px;
-        font-size: 20px; color: #fff; border-radius: 10px;
-        cursor: pointer; margin: 6px; transition:.3s;
-    }
-    button:hover { transform: scale(1.08); background:#7a3c18; }
+        #btnSortear {
+            background: #80511d;
+            color: white;
+            font-weight: bold;
+        }
 
-    #resultado {
-        margin-top: 25px; font-size: 30px; background:#d2a679; color:#3b241a;
-        padding:10px 20px; border-radius:10px; font-weight:bold; display:inline-block;
-    }
-    #lista{
-        margin-top:15px;font-size:20px;background:#ffffff25;width:300px;
-        padding:12px;border-radius:10px;margin:auto;
-    }
+        #btnDesfazer {
+            color: white;
+            background: #56371b;
+            border: 2px solid #cc975d;
+        }
 
-</style>
+        #resultado {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        #lista-sorteados {
+            margin-top: 30px;
+            background: #4f2b1d;
+            padding: 15px;
+            width: 320px;
+            margin-left: auto;
+            margin-right: auto;
+            border-radius: 10px;
+        }
+
+        #lista-sorteados p {
+            font-size: 18px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px;
+            margin: 5px 0;
+            border-radius: 6px;
+        }
+    </style>
 </head>
 <body>
 
-<h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
+    <h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
 
-<div id="ponteiro"></div>
-<div id="roleta">🍫</div>
+    <div class="roda"></div>
 
-<br>
-<button onclick="sortear()">🎡 Girar</button>
-<button onclick="desfazer()">↩ Desfazer Último Sorteio</button>
+    <button id="btnSortear" onclick="sortear()">🎲 Girar</button>
+    <button id="btnDesfazer" onclick="desfazer()">↩ Desfazer Último</button>
 
-<p id="resultado"></p>
+    <p id="resultado"></p>
 
-<h2>Já sorteados:</h2>
-<div id="lista"><i>Ninguém ainda 😁</i></div>
+    <h2>Já sorteados:</h2>
+    <div id="lista-sorteados">
+        <p>Ninguém ainda 😅</p>
+    </div>
 
-
-<!-- FIREBASE + SCRIPT DA ROLETA -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit, deleteDoc, doc } 
-        from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBvtL1FsIyvIeIZgGahSH4IgIRasZ4Dm0w",
-  authDomain: "amigochocolate-a3508.firebaseapp.com",
-  projectId: "amigochocolate-a3508",
-  storageBucket: "amigochocolate-a3508.firebasestorage.app",
-  messagingSenderId: "145498462878",
-  appId: "1:145498462878:web:9b1167e59b4c05f8e7f98f"
-};  
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let participantesBase = [
-    "Ana Mendes","Miyashiro","Ana Julia","Carlos","Eduardo",
-    "Enzo","Felipe","Kaique","Pedro","Marina","Manu","Julia"
-];
-let participantes = [...participantesBase];
-
-async function carregarSorteados(){
-    const snap = await getDocs(collection(db,"sorteados"));
-    let nomes=[]
-    snap.forEach(d=>nomes.push(d.data().nome))
-
-    document.getElementById("lista").innerHTML =
-       nomes.length? nomes.join("<br>"):"<i>Ninguém ainda 😁</i>"
-
-    participantes = participantesBase.filter(n=>!nomes.includes(n))
-}
-
-async function sortear(){
-    await carregarSorteados();
-    if(participantes.length===0)
-        return document.getElementById("resultado").innerHTML="Todos foram sorteados 🎉"
-
-    let index = Math.floor(Math.random()*participantes.length)
-    let escolhido = participantes[index]
-
-    let roleta = document.getElementById("roleta")
-    let giros = 360*6
-    let final = Math.random()*360
-
-    roleta.style.transition="6s cubic-bezier(.1,.6,.3,1)"
-    roleta.style.transform=`rotate(${giros+final}deg)`
-
-    setTimeout(async()=>{
-        await addDoc(collection(db,"sorteados"),{nome:escolhido})
-        document.getElementById("resultado").innerHTML=`Você tirou: <b>${escolhido}</b> 🍫`
-        carregarSorteados()
-    },6000)
-}
-
-async function desfazer(){
-    const q = query(collection(db,"sorteados"), orderBy("__name__", "desc"), limit(1));
-    const snap = await getDocs(q);
-
-    if(snap.empty) return alert("Nenhum sorteio para desfazer!");
-
-    let ultimo = snap.docs[0];
-    await deleteDoc(doc(db,"sorteados",ultimo.id));
-
-    alert(`Sorteio desfeito: ${ultimo.data().nome}`);
-
-    carregarSorteados();
-    document.getElementById("resultado").innerHTML="Sorteio cancelado! Pode rodar de novo 🎡"
-}
-
-carregarSorteados();
-</script>
+    <!-- Conexão com o script -->
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>
