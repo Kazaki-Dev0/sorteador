@@ -77,3 +77,12 @@ carregarSorteados();
 // 🔥 BOTÕES FUNCIONANDO (isso resolve seu erro)
 document.getElementById("btn-sortear").addEventListener("click", sortear);
 document.getElementById("btn-desfazer").addEventListener("click", desfazer);
+
+async function resetarTudo(){
+    const snap = await getDocs(collection(db,"sorteados"));
+    snap.forEach(async d => await deleteDoc(doc(db,"sorteados", d.id)));
+
+    alert("🔥 Todos os resultados foram apagados!");
+    carregarSorteados();
+}
+window.resetarTudo = resetarTudo;
