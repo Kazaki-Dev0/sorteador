@@ -1,99 +1,71 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roleta — Amigo Chocolate 🎁🍫</title>
+<meta charset="UTF-8">
+<title>Roleta Amigo Chocolate 🍫</title>
 
-    <style>
-        body {
-            background: #3b1e12;
-            font-family: Arial, sans-serif;
-            color: white;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+    body {
+        background: #3b241a;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 40px;
+    }
 
-        h1 {
-            font-size: 32px;
-            margin-top: 50px;
-            font-weight: bold;
-        }
+    h1 { font-size: 42px; text-shadow: 3px 3px 5px #000; }
 
-        .roda {
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            border: 10px solid #d8a675;
-            margin: 40px auto;
-            background: conic-gradient(#6a4028, #8a5236, #6d3920);
-        }
+    #roleta {
+        margin: 40px auto;
+        width: 300px;
+        height: 300px;
+        border-radius: 50%;
+        border: 12px solid #d2a679;
+        background: conic-gradient(#6b3e26 0deg, #3b241a 360deg);
+        display: flex; justify-content: center; align-items: center;
+        font-size: 100px; overflow: hidden; position: relative;
+    }
 
-        button {
-            padding: 13px 28px;
-            font-size: 17px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            margin: 8px;
-        }
+    #ponteiro {
+        width: 0; height: 0; border-left: 15px solid transparent;
+        border-right: 15px solid transparent; border-bottom: 25px solid #ffce89;
+        margin-bottom: -20px;
+    }
 
-        #btnSortear {
-            background: #80511d;
-            color: white;
-            font-weight: bold;
-        }
+    button {
+        background: #5a2e14; border: none; padding: 12px 26px;
+        font-size: 20px; color: #fff; border-radius: 10px;
+        cursor: pointer; margin: 6px; transition:.3s;
+    }
+    button:hover { transform: scale(1.08); background:#7a3c18; }
 
-        #btnDesfazer {
-            color: white;
-            background: #56371b;
-            border: 2px solid #cc975d;
-        }
+    #resultado {
+        margin-top: 25px; font-size: 30px; background:#d2a679; color:#3b241a;
+        padding:10px 20px; border-radius:10px; font-weight:bold; display:inline-block;
+    }
 
-        #resultado {
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 15px;
-        }
-
-        #lista-sorteados {
-            margin-top: 30px;
-            background: #4f2b1d;
-            padding: 15px;
-            width: 320px;
-            margin-left: auto;
-            margin-right: auto;
-            border-radius: 10px;
-        }
-
-        #lista-sorteados p {
-            font-size: 18px;
-            background: rgba(255,255,255,0.15);
-            padding: 6px;
-            margin: 5px 0;
-            border-radius: 6px;
-        }
-    </style>
+    #lista{
+        margin-top:15px;font-size:20px;background:#ffffff25;width:300px;
+        padding:12px;border-radius:10px;margin:auto;
+    }
+</style>
 </head>
 <body>
 
-    <h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
+<h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
 
-    <div class="roda"></div>
+<div id="ponteiro"></div>
+<div id="roleta">🍫</div>
 
-    <button id="btnSortear" onclick="sortear()">🎲 Girar</button>
-    <button id="btnDesfazer" onclick="desfazer()">↩ Desfazer Último</button>
+<br>
+<button id="btn-sortear">🎡 Girar</button>
+<button id="btn-desfazer">↩ Desfazer Último Sorteio</button>
 
-    <p id="resultado"></p>
+<p id="resultado"></p>
 
-    <h2>Já sorteados:</h2>
-    <div id="lista-sorteados">
-        <p>Ninguém ainda 😅</p>
-    </div>
+<h2>Já sorteados:</h2>
+<div id="lista"><i>Carregando...</i></div>
 
-    <!-- Conexão com o script -->
-    <script type="module" src="script.js"></script>
-
+<script type="module" src="script.js"></script>
 </body>
 </html>

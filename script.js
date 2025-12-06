@@ -1,71 +1,79 @@
-// ---- imports firebase (se usar firebase) ----
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js";
-import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, query, orderBy, limit } 
-  from "https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import {
+  getFirestore, collection, getDocs, addDoc,
+  query, orderBy, limit, deleteDoc, doc
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-// ---- coloque sua config do firebase aqui ----
 const firebaseConfig = {
-  apiKey: "COLOQUE_SUA_APIKEY",
-  authDomain: "SEU_AUTHDOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_BUCKET",
-  messagingSenderId: "SENDER_ID",
-  appId: "SEU_APP_ID"
+  apiKey: "AIzaSyBvtL1FsIyvIeIZgGahSH4IgIRasZ4Dm0w",
+  authDomain: "amigochocolate-a3508.firebaseapp.com",
+  projectId: "amigochocolate-a3508",
+  storageBucket: "amigochocolate-a3508.firebasestorage.app",
+  messagingSenderId: "145498462878",
+  appId: "1:145498462878:web:9b1167e59b4c05f8e7f98f"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const sorteioRef = collection(db, "sorteados");
 
-// ---- lista exemplo (adeque se precisar) ----
-let nomes = ["Ana", "Carlos", "Felipe", "Kaique", "Marina"];
+let participantesBase = [
+    "Ana Mendes","Miyashiro","Ana Julia","Carlos","Eduardo",
+    "Enzo","Felipe","Kaique","Pedro","Marina","Manu","Julia"
+];
+let participantes = [...participantesBase];
 
-// ---- função sortear ----
+// 🔄 Atualiza lista na tela
+async function carregarSorteados(){
+    const snap = await getDocs(collection(db,"sorteados"));
+    let nomes = [];
+    snap.forEach(d => nomes.push(d.data().nome));
+
+    document.getElementById("lista").innerHTML =
+       nomes.length ? nomes.join("<br>") : "<i>Ninguém ainda 😁</i>";
+
+    participantes = participantesBase.filter(n=>!nomes.includes(n));
+}
+
+// 🎡 Função sortear
 async function sortear(){
-  // teste rápido (descomente se só quiser testar)
-  // alert("sortear() rodando!");
+    await carregarSorteados();
+    if(participantes.length === 0)
+        return document.getElementById("resultado").innerHTML="Todos foram sorteados 🎉";
 
-  // exemplo simples de sorteio sem firebase (se quiser testar sem DB)
-  // let escolhido = nomes[Math.floor(Math.random()*nomes.length)];
-  // document.getElementById("resultado").innerHTML = `Você tirou: <b>${escolhido}</b>`;
+    let index = Math.floor(Math.random()*participantes.length);
+    let escolhido = participantes[index];
 
-  // versão com Firestore (assume regras liberadas)
-  const docs = await getDocs(sorteioRef);
-  const usados = docs.docs.map(d => d.data().nome);
-  const restantes = nomes.filter(n => !usados.includes(n));
-  if(restantes.length === 0){
-    document.getElementById("resultado").textContent = "Todos já foram sorteados 🎉";
-    return;
-  }
-  const escolhido = restantes[Math.floor(Math.random()*restantes.length)];
-  await addDoc(sorteioRef, { nome: escolhido, ts: Date.now() });
-  document.getElementById("resultado").innerHTML = `Você tirou: <b>${escolhido}</b> 🍫`;
-  atualizarLista();
+    let roleta = document.getElementById("roleta");
+    let giros = 360*6;
+    let final = Math.random()*360;
+
+    roleta.style.transition="6s cubic-bezier(.1,.6,.3,1)";
+    roleta.style.transform=`rotate(${giros+final}deg)`;
+
+    setTimeout(async()=>{
+        await addDoc(collection(db,"sorteados"),{nome:escolhido});
+        document.getElementById("resultado").innerHTML=`Você tirou: <b>${escolhido}</b> 🍫`;
+        carregarSorteados();
+    },6000);
 }
-window.sortear = sortear; // <-- EXPÕE a função para o onclick do HTML
 
-// ---- função desfazer ----
+// ↩ Desfazer último sorteio
 async function desfazer(){
-  const q = query(sorteioRef, orderBy("ts", "desc"), limit(1));
-  const snap = await getDocs(q);
-  if(snap.empty) { alert("Nada para desfazer"); return; }
-  const ultimo = snap.docs[0];
-  await deleteDoc(doc(db, "sorteados", ultimo.id));
-  alert(`Sorteio desfeito: ${ultimo.data().nome}`);
-  atualizarLista();
-}
-window.desfazer = desfazer; // <-- EXPÕE também
+    const q = query(collection(db,"sorteados"), orderBy("__name__", "desc"), limit(1));
+    const snap = await getDocs(q);
+    if(snap.empty) return alert("Nenhum sorteio para desfazer!");
 
-// ---- função para atualizar a lista na tela ----
-async function atualizarLista(){
-  const listaEl = document.getElementById("lista") || document.getElementById("lista-sorteados");
-  if(!listaEl) return;
-  const snap = await getDocs(sorteioRef);
-  if(snap.empty){
-    listaEl.innerHTML = "<i>Ninguém ainda 😁</i>";
-    return;
-  }
-  const nomesS = snap.docs.map(d => d.data().nome);
-  listaEl.innerHTML = nomesS.join("<br>");
+    let ultimo = snap.docs[0];
+    await deleteDoc(doc(db,"sorteados",ultimo.id));
+
+    alert(`Sorteio desfeito: ${ultimo.data().nome}`);
+
+    carregarSorteados();
+    document.getElementById("resultado").innerHTML="Sorteio cancelado! Pode rodar de novo 🎡";
 }
-atualizarLista();
+
+carregarSorteados();
+
+// 🔥 BOTÕES FUNCIONANDO (isso resolve seu erro)
+document.getElementById("btn-sortear").addEventListener("click", sortear);
+document.getElementById("btn-desfazer").addEventListener("click", desfazer);
