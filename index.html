@@ -6,48 +6,56 @@
 
 <style>
     body {
-        background: #3b241a url('https://i.imgur.com/Pqk7hZB.png') repeat;
+        background: #3b241a;
         color: #fff;
-        font-family: "Comic Sans MS", sans-serif;
+        font-family: Arial, sans-serif;
         text-align: center;
         padding: 40px;
     }
 
     h1 {
-        font-size: 40px;
-        text-shadow: 0 0 10px #000;
+        font-size: 42px;
+        text-shadow: 3px 3px 5px #000;
     }
 
+    /* ROLETAAAAAAAA */
     #roleta {
-        margin: 50px auto;
+        margin: 40px auto;
         width: 300px;
         height: 300px;
         border-radius: 50%;
-        border: 10px solid #d2a679;
-        background: radial-gradient(circle, #6b3e26, #3b241a);
+        border: 12px solid #d2a679;
+        background: conic-gradient(#6b3e26 0deg, #3b241a 360deg);
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 28px;
-        font-weight: bold;
+        font-size: 100px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    #ponteiro {
+        width: 0;
+        height: 0;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-bottom: 25px solid #ffce89;
+        margin-bottom: -20px;
     }
 
     button {
         background: #5a2e14;
         border: none;
         padding: 15px 30px;
-        font-size: 22px;
-        font-weight: bold;
+        font-size: 20px;
         color: #fff;
-        border-radius: 8px;
-        transition: 0.3s;
+        border-radius: 10px;
         cursor: pointer;
-        margin-top: 20px;
+        transition: .3s;
     }
-
     button:hover {
+        transform: scale(1.08);
         background: #7a3c18;
-        transform: scale(1.05);
     }
 
     #resultado {
@@ -55,43 +63,99 @@
         font-size: 30px;
         background:#d2a679;
         color:#3b241a;
-        display:inline-block;
         padding:10px 20px;
         border-radius:10px;
         font-weight:bold;
+        display:inline-block;
     }
+    #lista{
+        margin-top:15px;
+        font-size:20px;
+        background:#ffffff25;
+        width:300px;
+        padding:12px;
+        border-radius:10px;
+        margin:auto;
+    }
+
 </style>
 </head>
-
 <body>
 
 <h1>🍫 Roleta — Amigo Chocolate 🍫</h1>
-<div id="roleta">Clique no botão 🎡</div>
 
-<button onclick="sortear()">Girar Roleta</button>
+<div id="ponteiro"></div>
+<div id="roleta">🍫</div>
+<br>
+<button onclick="sortear()">🎡 Girar</button>
 
 <p id="resultado"></p>
 
-<script>
-    let participantes = [
-        "Ana Mendes","Miyashiro","Ana Julia","Carlos","Eduardo","Enzo",
-        "Felipe","Kaique","Pedro","Marina","Manu","Julia"
-    ];
+<h2>Já sorteados:</h2>
+<div id="lista"><i>Carregando...</i></div>
 
-    function sortear() {
-        if(participantes.length === 0){
-            document.getElementById("resultado").innerHTML = 
-                "Todos já foram sorteados! 🎉";
-            return;
-        }
 
-        let index = Math.floor(Math.random() * participantes.length);
-        let escolhido = participantes.splice(index, 1)[0];
+<!-- 🔥 FIREBASE + SCRIPT DA ROLETA -->
+<script type="module">
 
-        document.getElementById("resultado").innerHTML = 
-            "Você tirou: <b>" + escolhido + "</b> 🍫";
-        document.getElementById("roleta").innerHTML = "🎉";
-    }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvtL1FsIyvIeIZgGahSH4IgIRasZ4Dm0w",
+  authDomain: "amigochocolate-a3508.firebaseapp.com",
+  projectId: "amigochocolate-a3508",
+  storageBucket: "amigochocolate-a3508.firebasestorage.app",
+  messagingSenderId: "145498462878",
+  appId: "1:145498462878:web:9b1167e59b4c05f8e7f98f"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let participantes = [
+    "Ana Mendes","Miyashiro","Ana Julia","Carlos","Eduardo",
+    "Enzo","Felipe","Kaique","Pedro","Marina","Manu","Julia"
+];
+
+async function carregarSorteados(){
+    const snap = await getDocs(collection(db,"sorteados"));
+    let nomes=[]
+    snap.forEach(d=>nomes.push(d.data().nome))
+
+    document.getElementById("lista").innerHTML =
+       nomes.length? nomes.join("<br>"):"<i>Ninguém ainda 😁</i>"
+
+    participantes = participantes.filter(n=>!nomes.includes(n))
+}
+
+async function sortear(){
+    await carregarSorteados();
+
+    if(participantes.length===0)
+        return document.getElementById("resultado").innerHTML="Todos foram sorteados 🎉"
+
+    let index = Math.floor(Math.random()*participantes.length);
+    let escolhido = participantes[index];
+
+    let roleta = document.getElementById("roleta");
+    let giros = 360 * 6; // quantidade de voltas
+    let final = Math.random() * 360; // rotação aleatória final
+
+    roleta.style.transition="6s cubic-bezier(.1,.6,.3,1)";
+    roleta.style.transform=`rotate(${giros + final}deg)`;
+
+    setTimeout(async()=>{
+        await addDoc(collection(db,"sorteados"), { nome: escolhido });
+
+        document.getElementById("resultado").innerHTML =
+          `Você tirou: <b>${escolhido}</b> 🍫`;
+
+        await carregarSorteados();
+    },6000);
+}
+
+carregarSorteados();
 </script>
 
 </body>
